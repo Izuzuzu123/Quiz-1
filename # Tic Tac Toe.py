@@ -1,10 +1,14 @@
 import tkinter as tk
 from tkinter import messagebox
+import random 
 
-# Game Logic Setup
+# GAME LOGIC SETUP
 board = ["-" for _ in range(9)]
 currentPlayer = "X"
 gameRunning = True
+scoreX = 0
+scoreO = 0
+gameMode = "PvP"
 
 def checkWin():
     # Horizontal
@@ -23,39 +27,92 @@ def checkWin():
         return True
     return False
 
-# GUI Functions
+
+def reset_game():
+    global board, currentPlayer, gameRunning
+    board = ["-" for _ in range(9)]
+    currentPlayer = "X"
+    gameRunning = True
+    for btn in buttons:
+        btn.config(text="")
+
+# MODE SWITCHING
+def start_pvp():
+    global gameMode
+    gameMode = "PvP"
+    menu_frame.pack_forget()
+    game_frame.pack()        
+    reset_game()
+
+def start_pvc():
+    global gameMode
+    gameMode = "PvC"
+    menu_frame.pack_forget()
+    game_frame.pack()
+    reset_game()
+
+def back_to_menu():
+    game_frame.pack_forget()
+    menu_frame.pack()
+
+# COMPUTER LOGIC
+def computer_move():
+    global currentPlayer
+    empty_indices = [i for i, val in enumerate(board) if val == "-"]
+    if empty_indices and gameRunning:
+        index = random.choice(empty_indices)
+        button_click(index)
+
+# BUTTON CLICK LOGIC
 def button_click(index):
-    global currentPlayer, gameRunning
+    global currentPlayer, gameRunning, scoreX, scoreO
 
     if board[index] == "-" and gameRunning:
         board[index] = currentPlayer
         buttons[index].config(text=currentPlayer)
         
-        # Check for Win
         if checkWin():
-            messagebox.showinfo("Tic Tac Toe", f"Player {currentPlayer} wins!")
-            gameRunning = False
-            root.destroy()
-        # Check for Tie
+            if currentPlayer == "X": scoreX += 1
+            else: scoreO += 1
+            score_label.config(text=f"X: {scoreX} | O: {scoreO}")
+            messagebox.showinfo("Win!", f"Player {currentPlayer} wins!")
+            reset_game()
         elif "-" not in board:
-            messagebox.showinfo("Tic Tac Toe", "It's a tie!")
-            gameRunning = False
-            root.destroy()
+            messagebox.showinfo("Tie", "It's a tie!")
+            reset_game()
         else:
             # Switch Player
             currentPlayer = "O" if currentPlayer == "X" else "X"
+            
+            if gameMode == "PvC" and currentPlayer == "O" and gameRunning:
+                root.after(500, computer_move)
 
-# Main Window Setup
+# GUI SETUP
 root = tk.Tk()
-root.title("Tic Tac Toe")
+root.title("Tic Tacky Toes")
+root.geometry("400x500")
+root.config(bg="#2c3e50")
+
+# MENU FRAME
+menu_frame = tk.Frame(root, bg="#2c3e50")
+tk.Label(menu_frame, text="Tic Tacky Toes", font=("Arial", 30, "bold"), bg="#2c3e50", fg="white").pack(pady=40)
+tk.Button(menu_frame, text="Player vs Player", font=("Arial", 12), width=20, command=start_pvp).pack(pady=10)
+tk.Button(menu_frame, text="Player vs Computer", font=("Arial", 12), width=20, command=start_pvc).pack(pady=10)
+menu_frame.pack()
+
+# GAME FRAME
+game_frame = tk.Frame(root, bg="#2c3e50")
+score_label = tk.Label(game_frame, text="X: 0 | O: 0", font=("Arial", 16), bg="#2c3e50", fg="white")
+score_label.grid(row=0, column=0, columnspan=3, pady=20)
 
 buttons = []
 for i in range(9):
-    btn = tk.Button(root, text="", font=("Arial", 20), width=5, height=2,
+    btn = tk.Button(game_frame, text="", font=("Arial", 20, "bold"), width=5, height=2,
+                    bg="#34495e", fg="white", activebackground="#1abc9c",
                     command=lambda i=i: button_click(i))
-    btn.grid(row=i//3, column=i%3)
+    btn.grid(row=(i//3)+1, column=i%3, padx=5, pady=5)
     buttons.append(btn)
 
-
+tk.Button(game_frame, text="Back to Menu", command=back_to_menu).grid(row=4, column=0, columnspan=3, pady=20)
 
 root.mainloop()
