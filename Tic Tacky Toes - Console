@@ -1,0 +1,57 @@
+import random
+
+board = ["-"] * 9
+player = "X"
+scoreX = 0
+scoreO = 0
+
+def show_board():
+    print(f"\nScore - X: {scoreX} | O: {scoreO}")
+    print(f"{board[0]}|{board[1]}|{board[2]}")
+    print(f"{board[3]}|{board[4]}|{board[5]}")
+    print(f"{board[6]}|{board[7]}|{board[8]}")
+
+def check_win():
+    # Horizontal
+    if (board[0] == board[1] == board[2] != "-") or \
+       (board[3] == board[4] == board[5] != "-") or \
+       (board[6] == board[7] == board[8] != "-"):
+        return True
+    # Vertical
+    if (board[0] == board[3] == board[6] != "-") or \
+       (board[1] == board[4] == board[7] != "-") or \
+       (board[2] == board[5] == board[8] != "-"):
+        return True
+    # Diagonal
+    if (board[0] == board[4] == board[8] != "-") or \
+       (board[2] == board[4] == board[6] != "-"):
+        return True
+    return False
+
+# Main Game Loop
+while True:
+    show_board()
+    move = int(input(f"Player {player} (0-8): "))
+    
+    if board[move] == "-":
+        board[move] = player
+        
+        if check_win():
+            if player == "X": scoreX += 1
+            else: scoreO += 1
+            show_board()
+            print(f"Player {player} wins!")
+            
+            if input("Play again? (y/n): ").lower() != "y": break
+            board = ["-"] * 9
+            player = "X"
+        elif "-" not in board:
+            show_board()
+            print("Tie!")
+            if input("Play again? (y/n): ").lower() != "y": break
+            board = ["-"] * 9
+            player = "X"
+        else:
+            player = "O" if player == "X" else "X"
+    else:
+        print("Spot taken!")
